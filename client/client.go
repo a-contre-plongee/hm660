@@ -1,6 +1,8 @@
 package client
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 type HTTPClient struct {
 	sessionID string

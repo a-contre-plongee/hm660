@@ -30,7 +30,7 @@ type apiResponse struct {
 type response struct {
 	Requested string          `json:"Requested"`
 	Result    string          `json:"Result"`
-	Params    json.RawMessage `json:"Params"`
+	Data      json.RawMessage `json:"Data"`
 }
 
 func (c HTTPClient) makeRequest(command string, params interface{}) (*response, error) {
@@ -55,6 +55,10 @@ func (c HTTPClient) makeRequest(command string, params interface{}) (*response, 
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid body")
+	}
+
+	if response.Response.Result != apiResultSuccess {
+		return nil, fmt.Errorf("%s: Operation failed (%s)", c.ip, response.Response.Result)
 	}
 
 	return &response.Response, nil
