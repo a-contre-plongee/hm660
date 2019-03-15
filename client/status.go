@@ -1,9 +1,11 @@
 package client
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
 	errgo "gopkg.in/errgo.v1"
 )
 
@@ -216,4 +218,19 @@ type SlotDetailedStatus struct {
 	Remain        string        `json:"Remain"`
 	ClipNum       int           `json:"ClipNum"`
 	RemainWarning int           `json:"RemainWarning"`
+}
+
+func (c HTTPClient) GetCamStatus() (CameraStatus, error) {
+	var camStatus CameraStatus
+	resp, err := c.makeRequest("GetCamStatus", nil)
+	if err != nil {
+		return camStatus, errors.Wrap(err, "fail to call HTTP API")
+	}
+
+	err = json.Unmarshal(resp.Data, &camStatus)
+	if err != nil {
+		return camStatus, errors.Wrap(err, "invalid response")
+	}
+
+	return camStatus, nil
 }
