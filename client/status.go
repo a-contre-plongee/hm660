@@ -1,5 +1,12 @@
 package client
 
+import (
+	"strconv"
+	"time"
+
+	errgo "gopkg.in/errgo.v1"
+)
+
 type AEStatus string
 type CamStatus string
 type ExposureStatus string
@@ -138,6 +145,15 @@ type CameraDetailedStatus struct {
 	WebAccess         Status      `json:"WebAccess"`
 	VideoOutputStatus Status      `json:"VideoOutputStatus"`
 	MenuStatus        Status      `json:"MenuStatus"`
+}
+
+func (c CameraDetailedStatus) TCTime() (time.Duration, error) {
+	seconds, err := strconv.Atoi(c.Timecode)
+	if err != nil {
+		return 0, errgo.Notef(err, "invalid timecode")
+	}
+
+	return time.Duration(seconds) * time.Second, nil
 }
 
 type IrisDetailedStatus struct {
