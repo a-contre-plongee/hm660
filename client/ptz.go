@@ -9,6 +9,8 @@ import (
 type PanDirection string
 type TiltDirection string
 type ZoomDirection string
+type PanCtrlDirection string
+type TiltCtrlDirection string
 
 const (
 	PanDirectionStop  PanDirection = "Stop"
@@ -28,6 +30,30 @@ const (
 
 	MinZoomSpeed = 0
 	MaxZoomSpeed = 8
+
+	PanCtrlDirectionStop     PanCtrlDirection = "Stop"
+	PanCtrlDirectionLeft     PanCtrlDirection = "Left"
+	PanCtrlDirectionRight    PanCtrlDirection = "Right"
+	PanCtrlDirectionHome     PanCtrlDirection = "Home"
+	PanCtrlDirectionPosition PanCtrlDirection = "Position"
+
+	TiltCtrlDirectionStop     TiltCtrlDirection = "Stop"
+	TiltCtrlDirectionUp       TiltCtrlDirection = "Up"
+	TiltCtrlDirectionDown     TiltCtrlDirection = "Down"
+	TiltCtrlDirectionHome     TiltCtrlDirection = "Home"
+	TiltCtrlDirectionPosition TiltCtrlDirection = "Position"
+
+	MinPanCtrlPosition = 0
+	MaxPanCtrlPosition = 35080
+
+	MinTiltCtrlPosition = 0
+	MaxTiltCtrlPosition = 35080
+
+	MinPanCtrlSpeed = 0
+	MaxPanCtrlSpeed = 30
+
+	MinTiltCtrlSpeed = 0
+	MaxTiltCtrlSpeed = 30
 )
 
 type JoyStickOperationParams struct {
@@ -40,6 +66,20 @@ type JoyStickOperationParams struct {
 type ZoomParams struct {
 	Direction ZoomDirection `json:"Direction"`
 	Speed     int           `json:"Speed"`
+}
+
+type PTZPresetParams struct {
+	Operation string `json:"Operation"`
+	No        int    `json:"No"`
+}
+
+type PTControlParams struct {
+	PanDirection  PanCtrlDirection  `json:"PanDirection"`
+	PanPosition   int               `json:"PanPosition"`
+	PanSpeed      int               `json:"PanSpeed"`
+	TiltDirection TiltCtrlDirection `json:"TiltDirection"`
+	TiltPosition  int               `json:"TiltPosition"`
+	TiltSpeed     int               `json:"TiltSpeed"`
 }
 
 func (c HTTPClient) JoyStickOperation(params JoyStickOperationParams) error {
@@ -63,6 +103,39 @@ func (c HTTPClient) Zoom(params ZoomParams) error {
 		return fmt.Errorf("Invalid zoom speed %v, should be between %v and %v", params.Speed, MinZoomSpeed, MaxZoomSpeed)
 	}
 	_, err := c.makeRequest("ZoomSwitchOperation", params)
+	if err != nil {
+		return errors.Wrap(err, "fail to call HTTP API")
+	}
+	return nil
+}
+
+func (c HTTPClient) MoveToPreset(preset int) error {
+	_, err := c.makeRequest("SetPTZPreset", PTZPresetParams{
+		Operation: "Move",
+		No:        preset,
+	})
+	if err != nil {
+		return errors.Wrap(err, "fail to move to preset")
+	}
+	return nil
+}
+
+func (c HTTPClient) SetPanTilt(params PTControlParams) error {
+	if params.PanSpeed < MinPanCtrlSpeed || params.PanSpeed > MaxPanCtrlSpeed {
+		return fmt.Errorf("Invalid pan speed %v, should be between %v and %v", params.PanSpeed, MinPanCtrlSpeed, MaxPanCtrlSpeed)
+	}
+	if params.PanPosition < MinPanCtrlPosition || params.PanPosition > MaxPanCtrlPosition {
+		return fmt.Errorf("Invalid pan speed %v, should be between %v and %v", params.PanPosition, MinPanCtrlPosition, MaxPanCtrlPosition)
+	}
+
+	if params.TiltSpeed < MinTiltCtrlSpeed || params.TiltSpeed > MaxTiltCtrlSpeed {
+		return fmt.Errorf("Invalid tilt speed %v, should be between %v and %v", params.TiltSpeed, MinTiltCtrlSpeed, MaxTiltCtrlSpeed)
+	}
+	if params.TiltPosition < MinTiltCtrlPosition || params.TiltPosition > MaxTiltCtrlPosition {
+		return fmt.Errorf("Invalid tilt speed %v, should be between %v and %v", params.TiltPosition, MinTiltCtrlPosition, MaxTiltCtrlPosition)
+	}
+
+	_, err := c.makeRequest("SetPTCtrl", params)
 	if err != nil {
 		return errors.Wrap(err, "fail to call HTTP API")
 	}
