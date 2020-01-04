@@ -47,7 +47,7 @@ const (
 	MaxPanCtrlPosition = 35080
 
 	MinTiltCtrlPosition = 0
-	MaxTiltCtrlPosition = 35080
+	MaxTiltCtrlPosition = 12080
 
 	MinPanCtrlSpeed = 0
 	MaxPanCtrlSpeed = 30
