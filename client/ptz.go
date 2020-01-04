@@ -54,6 +54,9 @@ const (
 
 	MinTiltCtrlSpeed = 0
 	MaxTiltCtrlSpeed = 30
+
+	MinZoomPosition = 0
+	MaxZoomPosition = 499
 )
 
 type JoyStickOperationParams struct {
@@ -139,5 +142,20 @@ func (c HTTPClient) SetPanTilt(params PTControlParams) error {
 	if err != nil {
 		return errors.Wrap(err, "fail to call HTTP API")
 	}
+	return nil
+}
+
+func (c HTTPClient) SetZoom(position int) error {
+	if position < MinZoomPosition || position > MaxZoomPosition {
+		return fmt.Errorf("Invalid zoom position %v, should be between %v and %v", position, MinZoomPosition, MaxZoomPosition)
+	}
+
+	_, err := c.makeRequest("SetZoomCtrl", map[string]int{
+		"Position": position,
+	})
+	if err != nil {
+		return errors.Wrap(err, "fail to call HTTP API")
+	}
+
 	return nil
 }
